@@ -1,23 +1,26 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
-from aiogram.utils.keyboard import ReplyKeyboardBuilder
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from lexicon.lexicon import LEXICON_RU
+from api.data import MENU_ITEMS
 
-# ------- Создаем клавиатуру через ReplyKeyboardBuilder -------
 
-# Создаем кнопки с ответами согласия и отказа
-button_yes = KeyboardButton(text=LEXICON_RU['yes_button'])
-button_no = KeyboardButton(text=LEXICON_RU['no_button'])
-
-# Инициализируем билдер для клавиатуры с кнопками "Давай" и "Не хочу!"
-yes_no_kb_builder = ReplyKeyboardBuilder()
-
-# Добавляем кнопки в билдер с аргументом width=2
-yes_no_kb_builder.row(button_yes, button_no, width=2)
-
-# Создаем клавиатуру с кнопками "Давай!" и "Не хочу!"
-yes_no_kb: ReplyKeyboardMarkup = yes_no_kb_builder.as_markup(
-    one_time_keyboard=True,
-    resize_keyboard=True
+# Создаем объекты инлайн-кнопок
+big_button_1 = InlineKeyboardButton(
+    text='БОЛЬШАЯ КНОПКА 1',
+    callback_data='big_button_1_pressed'
 )
+
+big_button_2 = InlineKeyboardButton(
+    text='БОЛЬШАЯ КНОПКА 2',
+    callback_data='big_button_2_pressed'
+)
+
+# Создаем объект инлайн-клавиатуры
+keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[[big_button_1],
+                     [big_button_2]]
+)
+
+for i in MENU_ITEMS:
+    print(i)
 

@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
 from handlers import other_handlers, user_handlers
 from keyboards.set_menu import set_main_menu
+from lexicon.lexicon import LEXICON_MENU
 
 # Функция конфигурирования и запуска бота
 async def main() -> None:
@@ -17,7 +18,7 @@ async def main() -> None:
     bot = Bot(token=config.tg_bot.token)
     dp = Dispatcher()
     # Настраиваем кнопку Menu
-    await set_main_menu(bot)
+    await set_main_menu(bot, LEXICON_MENU)
 
     # Регистриуем роутеры в диспетчере
     dp.include_router(user_handlers.router)
