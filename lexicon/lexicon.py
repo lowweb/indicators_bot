@@ -1,20 +1,26 @@
-LEXICON_RU: dict[str, str] = {
+LEXICON_MSG: dict[str, str] = {
     '/start': 'Привет!\n\n Ты можешь передать даные о следующим показателям!\n\n',
-    '/help': 'Я просто отправляю вам копию вашего сообщения',
-    'no_echo': 'Данный тип апдейтов не поддерживается '
-               'методом send_copy',
+    '/help': 'Меню помощь',
+    '/noreg': 'Вы не авторизированны',
+    '/waitinput': 'Для передачи показтеля выбирете значение из меню',
+    '/edit_indicators': 'Какой из показателей хотите отредактировать?',
+    # '/pleasereg': 'Для последующей работы зарегистрируйтесь',
+    # '/afterreg': 'запрос на регистрацию отправлен'
 
 }
-
 
 
 LEXICON_MENU: dict[str, str] = {
     '/start': 'Доступные комманды',
     '/help': 'Помощь',
+    '/edit_indicators': 'Редактировать значение'
 }
+
+LEXICON_PREFIX: dict[str, str] = {
+    'new': 'new',
+    'edit': 'edit',
+    'update': 'update'
+}
+
  
 
-LEXICON_KEYBOARD: dict[str, str] = {
-    '' : '',
-
-}
