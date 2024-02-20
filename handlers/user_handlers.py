@@ -46,20 +46,27 @@ async def process_start_command(message: Message):
 @router.callback_query(F.data.startswith(LEXICON_PREFIX['new']))
 async def process_category_press(callback: CallbackQuery,state: FSMContext):
     await state.set_state(Form.new_answer)
-    # await state.update_data(new_title=callback.data.split('_')[1])
-    value = get_value_by_key(callback.data.split('_')[1], MENU_ITEMS)
-    await callback.message.answer(text=f"Введите значение показателя {value}")
+    new_title = get_value_by_key(callback.data.split('_')[1], MENU_ITEMS)
+    await state.update_data(new_title=new_title)
+    new_id = callback.data.split('_')[1]
+    await state.update_data(new_id=new_id)
+    await callback.message.answer(text=f"Введите значение показателя {new_title}")
     await callback.answer()
 
 # ответ при вводе показателя
-@router.message(Form.new_answer)
+@router.message(Form.new_answer, lambda x: x.text.isdigit())
 async def process_state(message: Message, state: FSMContext) -> None:
     await state.update_data(new_answer=message.text)
     await state.clear()
     keyboard = create_inline_kb(1, MENU_ITEMS, LEXICON_PREFIX['new'])
     await message.answer(
         f"Значение= {message.text}!\nзаписанно в БД", reply_markup=keyboard
-    )    
+    )
+
+@router.message(Form.new_answer)
+async def process_state(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    await message.answer(text=f"Введите цифровое значение для показателя {data['new_title']}")         
 
 @router.message(Command(commands='edit_indicators'))
 async def process_start_command(message: Message):
@@ -71,34 +78,41 @@ async def process_start_command(message: Message):
 @router.callback_query(F.data.startswith(LEXICON_PREFIX['edit']))
 async def process_category_press(callback: CallbackQuery,state: FSMContext):
     keyboard = create_inline_kb(2, UPDATE_MENU_ITEMS, LEXICON_PREFIX['update'])
-    value = get_value_by_key(callback.data.split('_')[1], EDIT_MENU_ITEMS)
-    await callback.message.answer(text=f"{value}",reply_markup=keyboard)
+    edit_title = get_value_by_key(callback.data.split('_')[1], EDIT_MENU_ITEMS)
+    await state.update_data(edit_title=edit_title)
+    await callback.message.answer(text=f"{edit_title}",reply_markup=keyboard)
     await callback.answer() 
 
 # Этот хэндлер срабатывает на нажатие кнопки обновляемого показателя  
 @router.callback_query(F.data.startswith(LEXICON_PREFIX['update']))
 async def category(callback: CallbackQuery, state: FSMContext):
     await state.set_state(Form.update_answer)
+    update_title = get_value_by_key(callback.data.split('_')[1], UPDATE_MENU_ITEMS)
     await state.update_data(update_id=callback.data.split('_')[1])
-    value = get_value_by_key(callback.data.split('_')[1], EDIT_MENU_ITEMS)
-    await callback.message.answer(text=f"Введите значение для редактируемого показателя {value}")
+    await state.update_data(update_title=update_title)
+    data = await state.get_data()
+    await callback.message.answer(text=f"Введите значение для редактируемого показателя {data['update_title']} _ {data['edit_title']}")
     await callback.answer('')
+
+# ответ при вводе показателя для обновленя
+@router.message(Form.update_answer, lambda x: x.text.isdigit())
+async def process_state(message: Message, state: FSMContext) -> None:
+    await state.update_data(update_answer=message.text)
+    data = await state.get_data()
+    await state.clear()
+    await message.answer(
+        f"Значение= {data['update_id']}!\nотредактированно")   
 
 # ответ при вводе показателя для обновленя
 @router.message(Form.update_answer)
 async def process_state(message: Message, state: FSMContext) -> None:
-    await state.update_data(update_answer=message.text)
-    id= await state.get_data()
-    await state.clear()
-    await message.answer(
-        f"Значение= {id['update_id']}!\nотредактированно")   
-     
-
+    data = await state.get_data()
+    await message.answer(text=f"Введите цифровое значение для обновляемого показателя {data['update_title']}")   
+  
 @router.message()
 async def send_echo(message: Message):
     await message.answer(text=LEXICON_MSG['/waitinput'])    
     
-
 # Этот хэндлер срабатывает на команду /help
 @router.message(Command(commands='help'))
 async def process_help_command(message: Message):
