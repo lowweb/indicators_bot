@@ -21,13 +21,13 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(50))
     tg_id: Mapped[int] = mapped_column()
+    role_id: Mapped[int] = mapped_column(ForeignKey('roles.id'))
     data_indicators: Mapped[List['Data_indicator']] = relationship(back_populates='users')
 
 class Role(Base):
     __tablename__ = 'roles'
     id: Mapped[int] = mapped_column(primary_key=True)
-    role: Mapped[int] = mapped_column()
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    name: Mapped[str] = mapped_column(String(70))
     indicators: Mapped[List['Indicator']] = relationship(back_populates='roles')
 
 
@@ -54,3 +54,4 @@ class Data_indicator(Base):
 async def create_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+

@@ -14,5 +14,4 @@ async def add_row(async_session: async_session):
 async def check_rows(async_session: async_session):
     async with async_session() as session:
         result = await session.scalars(select(Indicator))
-        print(result)
         return result

@@ -11,13 +11,15 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from services.services import get_value_by_key 
-from database.requests import get_all_indicators_by_role, add_user_data_indicator,get_users_data_indicators,update_user_data_indicators,delete_user_data_indicator
+from database.requests import get_all_indicators_by_role, add_user_data_indicator,get_users_data_indicators,update_user_data_indicators,delete_user_data_indicator, get_user_id, get_role_id
 
 
 MENU_ITEMS = {}
 EDIT_MENU_ITEMS = {}
 UPDATE_MENU_ITEMS = {}
 DELETE_MENU_ITEMS = {}
+USER_ID = None
+USER_ROLE = None
 
 class Form(StatesGroup):
     new_answer = State()
@@ -42,8 +44,9 @@ router.message.filter(IsAuthUser(AUTH_IDS))
 @router.message(CommandStart())
 async def process_start_command(message: Message):
     # запрос
-    global MENU_ITEMS
-    MENU_ITEMS = await get_all_indicators_by_role(3)
+    global MENU_ITEMS,USER_ROLE
+    USER_ROLE = await get_role_id(message.from_user.id)
+    MENU_ITEMS = await get_all_indicators_by_role(USER_ROLE)
     keyboard = create_inline_kb(1, MENU_ITEMS, LEXICON_PREFIX['new'])
     await message.answer(text=LEXICON_MSG['/start'], reply_markup=keyboard)
     # await set_main_menu(bot,MENU['2'])
@@ -65,7 +68,9 @@ async def process_category_press(callback: CallbackQuery,state: FSMContext):
 async def process_state(message: Message, state: FSMContext) -> None:
     await state.update_data(new_answer=message.text)
     data = await state.get_data()
-    await add_user_data_indicator(data['new_id'],data['new_answer'],3)
+    global USER_ID
+    USER_ID = await get_user_id(message.from_user.id)
+    await add_user_data_indicator(data['new_id'],data['new_answer'],USER_ID)
     await state.clear()
     keyboard = create_inline_kb(1, MENU_ITEMS, LEXICON_PREFIX['new'])
     await message.answer(
@@ -79,8 +84,9 @@ async def process_state(message: Message, state: FSMContext) -> None:
 
 @router.message(Command(commands='edit_indicators'))
 async def process_start_command(message: Message):
-    global EDIT_MENU_ITEMS
-    EDIT_MENU_ITEMS = await get_all_indicators_by_role(3)
+    global EDIT_MENU_ITEMS,USER_ROLE
+    USER_ROLE = await get_role_id(message.from_user.id)
+    EDIT_MENU_ITEMS = await get_all_indicators_by_role(USER_ROLE)
     keyboard = create_inline_kb(1, EDIT_MENU_ITEMS, LEXICON_PREFIX['edit'])
     await message.answer(text=LEXICON_MSG['/edit_indicators'], reply_markup=keyboard)
 
@@ -88,13 +94,14 @@ async def process_start_command(message: Message):
 # Этот хэндлер срабатывает на меню редактирование показателя 
 @router.callback_query(F.data.startswith(LEXICON_PREFIX['edit']))
 async def process_category_press(callback: CallbackQuery,state: FSMContext):
-    global UPDATE_MENU_ITEMS
+    global UPDATE_MENU_ITEMS, USER_ID
     
     edit_title = get_value_by_key(callback.data.split('_')[1], EDIT_MENU_ITEMS)
     edit_id = callback.data.split('_')[1]
     await state.update_data(edit_title=edit_title)
     await state.update_data(edit_id=edit_id)
-    UPDATE_MENU_ITEMS = await get_users_data_indicators(edit_id,3,30)
+    USER_ID = await get_user_id(callback.from_user.id)
+    UPDATE_MENU_ITEMS = await get_users_data_indicators(edit_id,USER_ID,30)
     if not UPDATE_MENU_ITEMS:
         keyboard = create_inline_kb(1, EDIT_MENU_ITEMS, LEXICON_PREFIX['edit'])
         await callback.message.answer(f'Нет данных по показателю *{edit_title}*, попробуйте другой', reply_markup=keyboard, parse_mode= 'Markdown')
@@ -119,7 +126,7 @@ async def category(callback: CallbackQuery, state: FSMContext):
 async def process_state(message: Message, state: FSMContext) -> None:
     await state.update_data(update_answer=message.text)
     data = await state.get_data()
-    await update_user_data_indicators(data['update_id'],3,data['update_answer'])
+    await update_user_data_indicators(data['update_id'],USER_ID,data['update_answer'])
     await state.clear()
     await message.answer(
         f"Значение показателя *{data['edit_title']}* за *{data['update_title']}* измененно на *{data['update_answer']}*",parse_mode= 'Markdown')   
@@ -133,8 +140,9 @@ async def process_state(message: Message, state: FSMContext) -> None:
 
 @router.message(Command(commands='delete_indicators'))
 async def process_delete_command(message: Message):
-    global EDIT_MENU_ITEMS
-    EDIT_MENU_ITEMS = await get_all_indicators_by_role(3)
+    global EDIT_MENU_ITEMS,USER_ROLE
+    USER_ROLE = await get_role_id(message.from_user.id)
+    EDIT_MENU_ITEMS = await get_all_indicators_by_role(USER_ROLE)
     keyboard = create_inline_kb(1, EDIT_MENU_ITEMS, LEXICON_PREFIX['delete'])
     await message.answer(text=LEXICON_MSG['/delete_indicators'], reply_markup=keyboard)
 
@@ -145,8 +153,9 @@ async def process_delete_press(callback: CallbackQuery,state: FSMContext):
     await state.update_data(delete_id=delete_id)
     delete_title = get_value_by_key(callback.data.split('_')[1], EDIT_MENU_ITEMS)
     await state.update_data(delete_title=delete_title)
-    global DELETE_MENU_ITEMS
-    DELETE_MENU_ITEMS = await get_users_data_indicators(delete_id,3,30)
+    global DELETE_MENU_ITEMS, USER_ID
+    USER_ID = await get_user_id(callback.from_user.id)
+    DELETE_MENU_ITEMS = await get_users_data_indicators(delete_id,USER_ID,30)
     keyboard = create_inline_kb(2, DELETE_MENU_ITEMS, LEXICON_PREFIX['itmdelete'])
     await callback.message.answer(text=f"Выбирете, какие данные необходимо удалить по показателю *{delete_title}*",reply_markup=keyboard,parse_mode= 'Markdown')
     await callback.answer()     
