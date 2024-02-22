@@ -14,7 +14,7 @@ LEXICON_MSG: dict[str, str] = {
 LEXICON_MENU: dict[str, str] = {
     '/start': 'Передать показатели',
     '/edit_indicators': 'Редактировать показатели',
-    '/delete_indicators': 'Редактировать показатели',
+    '/delete_indicators': 'Удалить показатели',
     '/help': 'Помощь',
 }
 

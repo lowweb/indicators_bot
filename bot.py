@@ -7,9 +7,12 @@ from handlers import other_handlers, user_handlers
 from keyboards.set_menu import set_main_menu
 from lexicon.lexicon import LEXICON_MENU
 
+
+
+
 # Функция конфигурирования и запуска бота
 async def main() -> None:
-
+    
     logging.basicConfig(level=logging.INFO)
     # Загружаем конфиг в переменную config
     config: Config = load_config()
