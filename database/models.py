@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from sqlalchemy import ForeignKey, String
@@ -46,7 +46,7 @@ class Data_indicator(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     indicator_id: Mapped[int] = mapped_column(ForeignKey("indicators.id"))
     indicator_value: Mapped[int] = mapped_column()
-    created_at: Mapped[datetime] = mapped_column(server_default=now())
+    created_at: Mapped[datetime] = mapped_column(default=datetime.now() + timedelta(hours=10))
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     users: Mapped['User'] = relationship(back_populates='data_indicators')
 
