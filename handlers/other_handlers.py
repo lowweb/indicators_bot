@@ -25,3 +25,9 @@ router = Router()
 @router.message()
 async def send_echo(message: Message):
     await message.answer(text=LEXICON_MSG['/noreg'])
+
+    #функиця получения отчета, пока положил сюда (если пользователь не зареган, то получает отчет)
+    file = await download_report()
+    await message.reply_document(document=BufferedInputFile(file=file.getvalue().encode('utf-8'), filename='report.csv'))
+
+    await message.answer(f'Ваш телеграмм ID {message.from_user.id}')
