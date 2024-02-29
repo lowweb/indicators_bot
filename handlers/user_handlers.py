@@ -1,7 +1,7 @@
 
 from aiogram import Router, Bot
 from aiogram.filters import Command, CommandStart
-from aiogram.types import Message
+from aiogram.types import Message,BufferedInputFile
 from lexicon.lexicon import LEXICON_MSG,LEXICON_PREFIX
 from config_data.config import load_config
 from filters.auth import IsAuthUser
@@ -11,8 +11,7 @@ from aiogram import F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from services.services import get_value_by_key 
-from database.requests import get_all_indicators_by_role, add_user_data_indicator,get_users_data_indicators,update_user_data_indicators,delete_user_data_indicator, get_user_id, get_role_id
-
+from database.requests import get_all_indicators_by_role, add_user_data_indicator,get_users_data_indicators,update_user_data_indicators,delete_user_data_indicator, get_user_id, get_role_id,download_report
 
 MENU_ITEMS = {}
 EDIT_MENU_ITEMS = {}
@@ -173,14 +172,25 @@ async def category(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(text=f"Показатель *{delete_itmtitle}* удален.",parse_mode= 'Markdown')
     await callback.answer('')
 
-@router.message()
-async def send_echo(message: Message):
-    await message.answer(text=LEXICON_MSG['/waitinput'])    
-    
+# Этот хэндлер срабатывает на команду /stat
+@router.message(Command(commands='stat'))
+async def process_stat_command(message: Message):
+    file = await download_report()
+    await message.reply_document(document=BufferedInputFile(file=file.getvalue().encode('utf-8'), filename='report.csv'))
 # Этот хэндлер срабатывает на команду /help
 @router.message(Command(commands='help'))
 async def process_help_command(message: Message):
     await message.answer(text=LEXICON_MSG['/help'])
-    # await del_main_menu(bot)
+
+@router.message()
+async def send_echo(message: Message):
+    await message.answer(text=LEXICON_MSG['/waitinput'])    
+    
+
+
+
+
+
+
 
   
